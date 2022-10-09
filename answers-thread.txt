@@ -1,0 +1,5 @@
+When thread 0 enter 'put' and then just enter 'insert', and it turns to run thread 1.
+Thread 1 enter 'put' and enter 'insert', then it exit from 'insert'.
+Now thread 1 have updated the variable 'table[i]' but thread 0's 'insert' still hold the 'table[i]' out of update.
+Then thread change 'table[i] -> next' to the older 'table[i]'.
+In this case, program miss the put of thread 1.
