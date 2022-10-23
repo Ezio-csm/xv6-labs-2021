@@ -65,6 +65,41 @@ usertrap(void)
     intr_on();
 
     syscall();
+  } else if(r_scause() == 13 || r_scause() == 15){
+    char* mem;
+    uint64 pa;
+    uint64 va;
+    uint pflag;
+    pte_t *pte;
+
+    va = r_stval();
+    if(va >= MAXVA || (va <= PGROUNDDOWN(p->trapframe->sp) && va >= PGROUNDDOWN(p -> trapframe -> sp) - PGSIZE)){
+      p -> killed = 1;
+    }
+    else{
+      va = PGROUNDDOWN(va);
+      pte = walk(p -> pagetable, va, 0);
+      if(pte){
+        if((*pte) & PTE_C){
+          mem = kalloc();
+          if(mem){
+            pa = PTE2PA(*pte);
+            *pte = (*pte) | PTE_W;
+            *pte = (*pte) & (~PTE_C);
+            pflag = PTE_FLAGS(*pte);
+	          memmove(mem, (char*)pa, PGSIZE);
+            uvmunmap(p -> pagetable, va, 1, 1);
+	          if(mappages(p -> pagetable, va, PGSIZE, (uint64)mem, pflag) != 0){
+              uvmunmap(p -> pagetable, va, 1, 1);
+	            p -> killed = 1;
+            }
+          }
+          else p -> killed = 1;
+        }
+        else p -> killed = 1;
+      }
+      else p -> killed = 1;
+    }
   } else if((which_dev = devintr()) != 0){
     // ok
   } else {
