@@ -73,19 +73,18 @@ usertrap(void)
     pte_t *pte;
 
     va = r_stval();
-    if(va >= MAXVA || (va <= PGROUNDDOWN(p->trapframe->sp) && va >= PGROUNDDOWN(p -> trapframe -> sp) - PGSIZE)){
+    if(va >= MAXVA || (va <= PGROUNDDOWN(p->trapframe->sp) && va >= PGROUNDDOWN(p -> trapframe -> sp) - PGSIZE))
       p -> killed = 1;
-    }
     else{
       va = PGROUNDDOWN(va);
       pte = walk(p -> pagetable, va, 0);
       if(pte){
-        if((*pte) & PTE_C){
+        if((*pte) & PTE_COW){
           mem = kalloc();
           if(mem){
             pa = PTE2PA(*pte);
             *pte = (*pte) | PTE_W;
-            *pte = (*pte) & (~PTE_C);
+            *pte = (*pte) & (~PTE_COW);
             pflag = PTE_FLAGS(*pte);
 	          memmove(mem, (char*)pa, PGSIZE);
             uvmunmap(p -> pagetable, va, 1, 1);

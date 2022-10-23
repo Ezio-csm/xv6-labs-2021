@@ -312,7 +312,7 @@ uvmcopy(pagetable_t old, pagetable_t new, uint64 sz)
 
     if(*pte & PTE_W){
       *pte = (*pte) & (~PTE_W);
-      *pte = (*pte) | PTE_C;
+      *pte = (*pte) | PTE_COW;
     }
 
     kaddref((void*)pa);
@@ -355,13 +355,13 @@ copyout(pagetable_t pagetable, uint64 dstva, char *src, uint64 len)
     pte = walk(pagetable, va0, 0);
     if(pte == 0)return -1;
     if(!((*pte & PTE_V) && (*pte & PTE_U)))return -1;
-    if(*pte & PTE_C){
+    if(*pte & PTE_COW){
       if((mem = kalloc()) == 0)
         panic("copyout : no memory");
       else{
         pa0 = PTE2PA(*pte);
         *pte = (*pte) | PTE_W;
-        *pte = (*pte) & (~PTE_C);
+        *pte = (*pte) & (~PTE_COW);
         pflag = PTE_FLAGS(*pte);
         memmove(mem, (char*)pa0, PGSIZE);
 	      uvmunmap(pagetable, va0, 1, 1);
