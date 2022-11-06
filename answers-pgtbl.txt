@@ -1,0 +1,6 @@
+If a system call need to access data in kernel, then we can share the data in this page, it could make ystem call faster.
+
+Data and text.
+Stack.
+No.
+Heap.
